@@ -33,7 +33,13 @@ const LoginPage = () => {
         login(userData, token);
         router.push("/dashboard");
       } else {
-        toast.error(data.message);
+        if (data.message === "Please verify your email before logging in.") {
+          toast.error(
+            "Please verify your email before logging in. Check your inbox for the verification code."
+          );
+        } else {
+          toast.error(data.message);
+        }
       }
     } catch (error) {
       toast.error("An unexpected error occurred. Please try again.");
@@ -88,11 +94,12 @@ const LoginPage = () => {
           </button>
         </form>
         <div className="mt-4 text-sm text-center">
-            <Link href="/auth/forgot-password"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-                Forgot your password?
-            </Link>
+          <Link
+            href="/auth/forgot-password"
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+          >
+            Forgot your password?
+          </Link>
         </div>
         <p className="mt-4 text-sm text-center text-gray-600">
           Don't have an account?{" "}

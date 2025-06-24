@@ -18,13 +18,15 @@ export default function DashboardPage() {
     return <div>Loading...</div>;
   }
 
+  console.log("DashboardPage - user:", user);
+
   if (!user) {
     return null;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold">Hi, {user.name}!</h1>
+      <h1 className="text-4xl font-bold">Hi, {user.name || "User"}!</h1>
       <p className="mt-4 text-lg">Welcome to your dashboard.</p>
     </div>
   );

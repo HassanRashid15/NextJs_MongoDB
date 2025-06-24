@@ -14,7 +14,7 @@ const generateToken = (id) => {
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { firstName, lastName, email, password } = req.body;
 
   try {
     const emailExists = await User.findOne({ email });
@@ -25,19 +25,49 @@ const registerUser = async (req, res) => {
     }
 
     const user = new User({
-      name,
+      firstName,
+      lastName,
       email,
       password,
+      isEmailVerified: false,
     });
 
     await user.save();
 
-    const token = generateToken(user._id);
+    // TODO: Send verification email here if not already handled
+    console.log("User saved successfully:", user.email);
+
+    // Generate and send verification email
+    try {
+      const verificationCode = user.generateEmailVerificationCode();
+      await user.save({ validateBeforeSave: false });
+
+      const text = `Your verification code is: ${verificationCode}\n\nThis code will expire in 1 minute.`;
+      const html = `<p>Your verification code is: <b>${verificationCode}</b></p><p>This code will expire in 1 minute.</p>`;
+
+      console.log(
+        "Sending verification email to:",
+        user.email,
+        "with code:",
+        verificationCode
+      );
+
+      await sendEmail({
+        email: user.email,
+        subject: "Email Verification Code",
+        text,
+        html,
+      });
+
+      console.log("Verification email sent successfully");
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError);
+      // Don't fail registration if email fails
+    }
+
     res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      token: token,
+      message:
+        "Registration successful! Please check your email to verify your account.",
     });
   } catch (error) {
     console.error(error);
@@ -52,11 +82,13 @@ const verifyEmail = async (req, res) => {
   const { email, code } = req.body;
 
   try {
+    console.log("Verifying email:", email, "with code:", code);
     const user = await User.findOne({
       email,
       emailVerificationCode: code,
       emailVerificationCodeExpires: { $gt: Date.now() },
     });
+    console.log("User found for verification:", user);
 
     if (!user) {
       return res
@@ -64,10 +96,10 @@ const verifyEmail = async (req, res) => {
         .json({ message: "Invalid or expired verification code." });
     }
 
-    // This logic is now disabled as the fields were removed from the model.
-    // user.isEmailVerified = true;
-    // user.emailVerificationCode = undefined;
-    // user.emailVerificationCodeExpires = undefined;
+    // Mark email as verified and clear verification code
+    user.isEmailVerified = true;
+    user.emailVerificationCode = undefined;
+    user.emailVerificationCodeExpires = undefined;
     await user.save({ validateBeforeSave: false });
 
     res.status(200).json({ message: "Email verified successfully." });
@@ -90,22 +122,23 @@ const resendVerificationCode = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // This logic is now disabled as the fields were removed from the model.
-    // if (user.isEmailVerified) {
-    //   return res.status(400).json({ message: "Email is already verified." });
-    // }
+    if (user.isEmailVerified) {
+      return res.status(400).json({ message: "Email is already verified." });
+    }
 
     // Generate and save a new verification code
     const verificationCode = user.generateEmailVerificationCode();
     await user.save({ validateBeforeSave: false });
 
     // Send verification email
-    const message = `Your new verification code is: ${verificationCode}\n\nThis code will expire in 1 minute.`;
+    const text = `Your new verification code is: ${verificationCode}\n\nThis code will expire in 1 minute.`;
+    const html = `<p>Your new verification code is: <b>${verificationCode}</b></p><p>This code will expire in 1 minute.</p>`;
 
     sendEmail({
       email: user.email,
       subject: "New Email Verification Code",
-      message,
+      text,
+      html,
     }).catch((err) => {
       console.error("Failed to resend verification email:", err);
     });
@@ -217,9 +250,16 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
+      if (!user.isEmailVerified) {
+        return res
+          .status(401)
+          .json({ message: "Please verify your email before logging in." });
+      }
       res.json({
         _id: user._id,
-        name: user.name,
+        name:
+          (user.firstName ? user.firstName : "") +
+          (user.lastName ? " " + user.lastName : ""),
         email: user.email,
         token: generateToken(user._id),
       });

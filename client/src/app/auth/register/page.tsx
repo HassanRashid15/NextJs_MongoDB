@@ -3,15 +3,14 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useAuth } from "@/context/AuthContext";
 
 const RegisterPage = () => {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,20 +22,18 @@ const RegisterPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ firstName, lastName, email, password }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("Registration successful!");
-        const { token, ...userData } = data;
-        login(userData, token);
-        router.push("/dashboard");
+        toast.success(data.message || "Registration successful!");
+        router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
       } else {
         toast.error(data.message);
       }
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
@@ -52,16 +49,32 @@ const RegisterPage = () => {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
-              htmlFor="name"
+              htmlFor="firstName"
               className="block mb-2 text-sm font-medium text-gray-700"
             >
-              Name
+              First Name
             </label>
             <input
               type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              id="firstName"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label
+              htmlFor="lastName"
+              className="block mb-2 text-sm font-medium text-gray-700"
+            >
+              Last Name
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
               required
             />

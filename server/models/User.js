@@ -3,10 +3,8 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 
 const UserSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
   email: {
     type: String,
     required: true,
@@ -15,6 +13,13 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  emailVerificationCode: {
+    type: String,
   },
   emailVerificationCodeExpires: {
     type: Date,
@@ -41,7 +46,10 @@ UserSchema.methods.matchPassword = async function (enteredPassword) {
 
 UserSchema.methods.generateEmailVerificationCode = function () {
   // Generate a 6-digit verification code
-  const verificationCode = Math.floor(100000 + Math.random() * 900000);
+  const verificationCode = Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
+  this.emailVerificationCode = verificationCode;
   this.emailVerificationCodeExpires = Date.now() + 60 * 1000;
 
   return verificationCode;

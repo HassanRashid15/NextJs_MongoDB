@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import ProtectedAuthRoute from "@/components/ProtectedAuthRoute";
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -52,7 +53,7 @@ export default function VerifyEmailPage() {
       } else {
         toast.error(data.message);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to resend code. Please try again.");
     } finally {
       setResending(false);
@@ -84,7 +85,7 @@ export default function VerifyEmailPage() {
       } else {
         toast.error(data.message);
       }
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
@@ -92,59 +93,62 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="p-8 bg-white rounded-lg shadow-md w-96">
-        <h2 className="mb-6 text-2xl font-bold text-center">
-          Verify Your Email
-        </h2>
-        <p className="mb-4 text-center text-gray-600">
-          A 6-digit verification code has been sent to <strong>{email}</strong>.
-        </p>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <div className="flex justify-between items-center mb-2">
-              <label
-                htmlFor="code"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Verification Code
-              </label>
-              {timer > 0 ? (
-                <span className="text-sm font-mono text-gray-500">
-                  Expires in: {timer}s
-                </span>
-              ) : (
-                <span className="text-sm text-red-500">Code expired</span>
-              )}
+    <ProtectedAuthRoute>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="p-8 bg-white rounded-lg shadow-md w-96">
+          <h2 className="mb-6 text-2xl font-bold text-center">
+            Verify Your Email
+          </h2>
+          <p className="mb-4 text-center text-gray-600">
+            A 6-digit verification code has been sent to{" "}
+            <strong>{email}</strong>.
+          </p>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <label
+                  htmlFor="code"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Verification Code
+                </label>
+                {timer > 0 ? (
+                  <span className="text-sm font-mono text-gray-500">
+                    Expires in: {timer}s
+                  </span>
+                ) : (
+                  <span className="text-sm text-red-500">Code expired</span>
+                )}
+              </div>
+              <input
+                type="text"
+                id="code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+                required
+                maxLength={6}
+              />
             </div>
-            <input
-              type="text"
-              id="code"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-              required
-              maxLength={6}
-            />
+            <button
+              type="submit"
+              disabled={loading || timer === 0}
+              className="w-full py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-indigo-400"
+            >
+              {loading ? "Verifying..." : "Verify"}
+            </button>
+          </form>
+          <div className="mt-4 text-center">
+            <button
+              onClick={handleResendCode}
+              disabled={resending || cooldown > 0}
+              className="text-sm text-indigo-600 hover:text-indigo-500 disabled:text-gray-400 disabled:cursor-not-allowed"
+            >
+              Resend code
+            </button>
           </div>
-          <button
-            type="submit"
-            disabled={loading || timer === 0}
-            className="w-full py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-indigo-400"
-          >
-            {loading ? "Verifying..." : "Verify"}
-          </button>
-        </form>
-        <div className="mt-4 text-center">
-          <button
-            onClick={handleResendCode}
-            disabled={resending || cooldown > 0}
-            className="text-sm text-indigo-600 hover:text-indigo-500 disabled:text-gray-400 disabled:cursor-not-allowed"
-          >
-            Resend code
-          </button>
         </div>
       </div>
-    </div>
+    </ProtectedAuthRoute>
   );
 }

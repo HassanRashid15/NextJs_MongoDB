@@ -12,7 +12,11 @@ import { useRouter } from "next/navigation";
 interface User {
   _id: string;
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  isEmailVerified?: boolean;
+  profileImage?: string;
 }
 
 interface AuthContextType {
@@ -36,8 +40,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const storedToken = localStorage.getItem("token");
       const storedUser = localStorage.getItem("user");
       if (storedToken && storedUser) {
+        let userObj = JSON.parse(storedUser);
+        // Fallback: parse firstName and lastName from name if missing
+        if ((!userObj.firstName || !userObj.lastName) && userObj.name) {
+          const nameParts = userObj.name.split(" ");
+          userObj.firstName = nameParts[0] || "";
+          userObj.lastName =
+            nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+        }
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        setUser(userObj);
       }
     } catch (error) {
       console.error("Failed to parse user from localStorage", error);
@@ -48,9 +60,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = (userData: User, userToken: string) => {
-    localStorage.setItem("user", JSON.stringify(userData));
+    // Fallback: parse firstName and lastName from name if missing
+    let userObj = { ...userData };
+    if ((!userObj.firstName || !userObj.lastName) && userObj.name) {
+      const nameParts = userObj.name.split(" ");
+      userObj.firstName = nameParts[0] || "";
+      userObj.lastName =
+        nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+    }
+    localStorage.setItem("user", JSON.stringify(userObj));
     localStorage.setItem("token", userToken);
-    setUser(userData);
+    setUser(userObj);
     setToken(userToken);
   };
 

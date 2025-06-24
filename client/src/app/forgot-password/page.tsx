@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import ProtectedAuthRoute from "@/components/ProtectedAuthRoute";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -35,44 +36,48 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="p-8 bg-white rounded-lg shadow-md w-96">
-        <h2 className="mb-6 text-2xl font-bold text-center">Forgot Password</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label
-              htmlFor="email"
-              className="block mb-2 text-sm font-medium text-gray-700"
+    <ProtectedAuthRoute>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="p-8 bg-white rounded-lg shadow-md w-96">
+          <h2 className="mb-6 text-2xl font-bold text-center">
+            Forgot Password
+          </h2>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <label
+                htmlFor="email"
+                className="block mb-2 text-sm font-medium text-gray-700"
+              >
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-indigo-400"
             >
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-indigo-400"
-          >
-            {loading ? "Sending..." : "Send Reset Link"}
-          </button>
-        </form>
-        <p className="mt-4 text-sm text-center text-gray-600">
-          Remembered your password?{" "}
-          <a
-            href="/login"
-            className="font-medium text-indigo-600 hover:text-indigo-500"
-          >
-            Log in
-          </a>
-        </p>
+              {loading ? "Sending..." : "Send Reset Link"}
+            </button>
+          </form>
+          <p className="mt-4 text-sm text-center text-gray-600">
+            Remembered your password?{" "}
+            <a
+              href="/login"
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+            >
+              Log in
+            </a>
+          </p>
+        </div>
       </div>
-    </div>
+    </ProtectedAuthRoute>
   );
 }

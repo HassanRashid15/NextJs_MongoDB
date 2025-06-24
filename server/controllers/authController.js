@@ -2,6 +2,8 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
+const multer = require("multer");
+const path = require("path");
 
 // Generate JWT
 const generateToken = (id) => {
@@ -9,6 +11,18 @@ const generateToken = (id) => {
     expiresIn: "30d",
   });
 };
+
+// Multer setup for image uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../uploads/"));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage });
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -68,6 +82,18 @@ const registerUser = async (req, res) => {
     res.status(201).json({
       message:
         "Registration successful! Please check your email to verify your account.",
+      user: {
+        _id: user._id,
+        name:
+          (user.firstName ? user.firstName : "") +
+          (user.lastName ? " " + user.lastName : ""),
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        isEmailVerified: user.isEmailVerified,
+        profileImage: user.profileImage,
+      },
+      token: generateToken(user._id),
     });
   } catch (error) {
     console.error(error);
@@ -260,12 +286,98 @@ const loginUser = async (req, res) => {
         name:
           (user.firstName ? user.firstName : "") +
           (user.lastName ? " " + user.lastName : ""),
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
+        isEmailVerified: user.isEmailVerified,
+        profileImage: user.profileImage,
         token: generateToken(user._id),
       });
     } else {
       res.status(401).json({ message: "Invalid email or password" });
     }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Update user profile (name and/or image)
+// @route   PATCH /api/auth/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Update name fields if provided
+    if (req.body.firstName) user.firstName = req.body.firstName;
+    if (req.body.lastName) user.lastName = req.body.lastName;
+
+    // Update profile image if uploaded
+    if (req.file) {
+      user.profileImage = `/uploads/${req.file.filename}`;
+    }
+
+    await user.save();
+    res.json({
+      _id: user._id,
+      name:
+        (user.firstName ? user.firstName : "") +
+        (user.lastName ? " " + user.lastName : ""),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      profileImage: user.profileImage || null,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Delete user profile image
+// @route   DELETE /api/auth/profile/image
+// @access  Private
+const deleteProfileImage = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    user.profileImage = undefined;
+    await user.save();
+    res.json({ message: "Profile image removed" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Change user password
+// @route   PUT /api/auth/change-password
+// @access  Private
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await user.matchPassword(currentPassword);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: "Password updated successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -279,4 +391,8 @@ module.exports = {
   forgotPassword,
   resetPassword,
   loginUser,
+  upload,
+  updateProfile,
+  deleteProfileImage,
+  changePassword,
 };

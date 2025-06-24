@@ -7,7 +7,12 @@ const {
   resendVerificationCode,
   forgotPassword,
   resetPassword,
+  upload,
+  updateProfile,
+  deleteProfileImage,
+  changePassword,
 } = require("../controllers/authController");
+const protect = require("../utils/authMiddleware");
 
 // @route   POST api/auth/register
 // @desc    Register a new user
@@ -38,5 +43,25 @@ router.put("/reset-password/:token", resetPassword);
 // @desc    Auth user & get token
 // @access  Public
 router.post("/login", loginUser);
+
+// @route   PUT api/auth/change-password
+// @desc    Change user password
+// @access  Private
+router.put("/change-password", protect, changePassword);
+
+// @route   PUT api/auth/update-profile
+// @desc    Update user profile information (name, email)
+// @access  Private
+router.put("/update-profile", protect, updateProfile);
+
+// @route   PATCH api/auth/profile
+// @desc    Update user profile (name and/or image)
+// @access  Private
+router.patch("/profile", protect, upload.single("profileImage"), updateProfile);
+
+// @route   DELETE api/auth/profile/image
+// @desc    Delete user profile image
+// @access  Private
+router.delete("/profile/image", protect, deleteProfileImage);
 
 module.exports = router;

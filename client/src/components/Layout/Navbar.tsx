@@ -74,9 +74,17 @@ const Navbar = () => {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white focus:outline-none"
+                className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white focus:outline-none bg-indigo-600 overflow-hidden"
               >
-                {getInitials(user?.name)}
+                {user?.profileImage ? (
+                  <img
+                    src={user.profileImage}
+                    alt="Avatar"
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  getInitials(user?.name)
+                )}
               </button>
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 text-black z-10">
@@ -84,6 +92,13 @@ const Navbar = () => {
                     <p className="font-bold">{user?.name || "User"}</p>
                     <p className="text-sm text-gray-500">{user?.email || ""}</p>
                   </div>
+                  <Link
+                    href="/profile"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    Profile
+                  </Link>
                   <Link
                     href="/dashboard"
                     className="block px-4 py-2 text-sm hover:bg-gray-100"

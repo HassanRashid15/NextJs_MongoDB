@@ -384,6 +384,73 @@ const changePassword = async (req, res) => {
   }
 };
 
+// @desc    Get current user
+// @route   GET /api/auth/me
+// @access  Private
+const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      _id: user._id,
+      name:
+        (user.firstName ? user.firstName : "") +
+        (user.lastName ? " " + user.lastName : ""),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      isEmailVerified: user.isEmailVerified,
+      profileImage: user.profileImage,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// @desc    Get dashboard data
+// @route   GET /api/dashboard
+// @access  Private
+const getDashboardData = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Mock dashboard data - you can replace this with real data from your database
+    const dashboardData = {
+      stats: {
+        totalLogins: Math.floor(Math.random() * 50) + 10, // Mock data
+        lastLogin: new Date().toISOString(),
+        profileCompleteness: user.profileImage ? 100 : 80,
+      },
+      recentActivity: [
+        {
+          id: "1",
+          action: "Logged in",
+          timestamp: new Date().toISOString(),
+        },
+        {
+          id: "2",
+          action: "Updated profile",
+          timestamp: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+        },
+      ],
+    };
+
+    res.json(dashboardData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   registerUser,
   verifyEmail,
@@ -395,4 +462,6 @@ module.exports = {
   updateProfile,
   deleteProfileImage,
   changePassword,
+  getCurrentUser,
+  getDashboardData,
 };

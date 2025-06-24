@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
 import ProtectedAuthRoute from "@/components/ProtectedAuthRoute";
+import PasswordInput from "@/components/ui/PasswordInput";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -56,34 +57,22 @@ export default function ResetPasswordPage() {
           </h2>
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label
-                htmlFor="password"
-                className="block mb-2 text-sm font-medium text-gray-700"
-              >
-                New Password
-              </label>
-              <input
-                type="password"
+              <PasswordInput
                 id="password"
+                name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+                label="New Password"
                 required
               />
             </div>
             <div className="mb-6">
-              <label
-                htmlFor="passwordConfirm"
-                className="block mb-2 text-sm font-medium text-gray-700"
-              >
-                Confirm New Password
-              </label>
-              <input
-                type="password"
+              <PasswordInput
                 id="passwordConfirm"
+                name="passwordConfirm"
                 value={passwordConfirm}
                 onChange={(e) => setPasswordConfirm(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+                label="Confirm New Password"
                 required
               />
             </div>

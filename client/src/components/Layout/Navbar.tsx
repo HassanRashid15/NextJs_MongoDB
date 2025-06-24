@@ -4,12 +4,19 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useState, useEffect, useRef } from "react";
 
-const Navbar = () => {
+interface NavbarProps {
+  initialUser?: any;
+}
+
+const Navbar = ({ initialUser }: NavbarProps) => {
   const { user, logout, isLoading } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  console.log("Navbar render - user:", user, "isLoading:", isLoading);
+  // Use initial user data from SSR to avoid hydration mismatch
+  const currentUser = user || initialUser;
+
+  console.log("Navbar render - user:", currentUser, "isLoading:", isLoading);
 
   const getInitials = (name: string | undefined | null) => {
     console.log("getInitials called with:", name, "type:", typeof name);
@@ -70,27 +77,29 @@ const Navbar = () => {
         <div>
           {isLoading ? (
             <div></div> // Render nothing or a placeholder during auth state loading
-          ) : user ? (
+          ) : currentUser ? (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white focus:outline-none bg-indigo-600 overflow-hidden"
               >
-                {user?.profileImage ? (
+                {currentUser?.profileImage ? (
                   <img
-                    src={user.profileImage}
+                    src={currentUser.profileImage}
                     alt="Avatar"
                     className="w-10 h-10 rounded-full object-cover"
                   />
                 ) : (
-                  getInitials(user?.name)
+                  getInitials(currentUser?.name)
                 )}
               </button>
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 text-black z-10">
                   <div className="px-4 py-2 border-b">
-                    <p className="font-bold">{user?.name || "User"}</p>
-                    <p className="text-sm text-gray-500">{user?.email || ""}</p>
+                    <p className="font-bold">{currentUser?.name || "User"}</p>
+                    <p className="text-sm text-gray-500">
+                      {currentUser?.email || ""}
+                    </p>
                   </div>
                   <Link
                     href="/profile"

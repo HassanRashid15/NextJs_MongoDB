@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import ProtectedAuthRoute from "@/components/ProtectedAuthRoute";
+import PasswordInput from "@/components/ui/PasswordInput";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -72,18 +73,12 @@ const LoginPage = () => {
               />
             </div>
             <div className="mb-6">
-              <label
-                htmlFor="password"
-                className="block mb-2 text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
-              <input
-                type="password"
+              <PasswordInput
                 id="password"
+                name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
+                label="Password"
                 required
               />
             </div>

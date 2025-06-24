@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PasswordInput from "@/components/ui/PasswordInput";
 
 const ChangePasswordPage = () => {
   const { token } = useAuth();
@@ -94,64 +95,37 @@ const ChangePasswordPage = () => {
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Current Password */}
-              <div>
-                <label
-                  htmlFor="currentPassword"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  id="currentPassword"
-                  name="currentPassword"
-                  value={formData.currentPassword}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Enter your current password"
-                />
-              </div>
+              <PasswordInput
+                id="currentPassword"
+                name="currentPassword"
+                value={formData.currentPassword}
+                onChange={handleInputChange}
+                label="Current Password"
+                placeholder="Enter your current password"
+                required
+              />
 
               {/* New Password */}
-              <div>
-                <label
-                  htmlFor="newPassword"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  id="newPassword"
-                  name="newPassword"
-                  value={formData.newPassword}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Enter your new password"
-                />
-              </div>
+              <PasswordInput
+                id="newPassword"
+                name="newPassword"
+                value={formData.newPassword}
+                onChange={handleInputChange}
+                label="New Password"
+                placeholder="Enter your new password"
+                required
+              />
 
               {/* Confirm New Password */}
-              <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Confirm your new password"
-                />
-              </div>
+              <PasswordInput
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                label="Confirm New Password"
+                placeholder="Confirm your new password"
+                required
+              />
 
               {/* Message */}
               {message && (

@@ -29,35 +29,43 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+interface AuthProviderProps {
+  children: ReactNode;
+  initialUser?: User | null;
+}
+
+export const AuthProvider = ({ children, initialUser }: AuthProviderProps) => {
+  const [user, setUser] = useState<User | null>(initialUser || null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!initialUser); // Don't load if we have initial user
   const router = useRouter();
 
   useEffect(() => {
-    try {
-      const storedToken = localStorage.getItem("token");
-      const storedUser = localStorage.getItem("user");
-      if (storedToken && storedUser) {
-        let userObj = JSON.parse(storedUser);
-        // Fallback: parse firstName and lastName from name if missing
-        if ((!userObj.firstName || !userObj.lastName) && userObj.name) {
-          const nameParts = userObj.name.split(" ");
-          userObj.firstName = nameParts[0] || "";
-          userObj.lastName =
-            nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+    // Only check localStorage if we don't have initial user data
+    if (!initialUser) {
+      try {
+        const storedToken = localStorage.getItem("token");
+        const storedUser = localStorage.getItem("user");
+        if (storedToken && storedUser) {
+          let userObj = JSON.parse(storedUser);
+          // Fallback: parse firstName and lastName from name if missing
+          if ((!userObj.firstName || !userObj.lastName) && userObj.name) {
+            const nameParts = userObj.name.split(" ");
+            userObj.firstName = nameParts[0] || "";
+            userObj.lastName =
+              nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+          }
+          setToken(storedToken);
+          setUser(userObj);
         }
-        setToken(storedToken);
-        setUser(userObj);
+      } catch (error) {
+        console.error("Failed to parse user from localStorage", error);
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
       }
-    } catch (error) {
-      console.error("Failed to parse user from localStorage", error);
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
     }
     setIsLoading(false);
-  }, []);
+  }, [initialUser]);
 
   const login = (userData: User, userToken: string) => {
     // Fallback: parse firstName and lastName from name if missing

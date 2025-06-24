@@ -1,18 +1,16 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import Link from "next/link";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
-
     try {
       const res = await fetch(
         "http://localhost:5000/api/auth/forgot-password",
@@ -22,14 +20,10 @@ export default function ForgotPasswordPage() {
           body: JSON.stringify({ email }),
         }
       );
-
       const data = await res.json();
-
       if (res.ok) {
         toast.success(data.message);
-        setMessage(
-          "If an account with that email exists, a password reset link has been sent."
-        );
+        router.push("/login");
       } else {
         toast.error(data.message);
       }
@@ -50,7 +44,7 @@ export default function ForgotPasswordPage() {
               htmlFor="email"
               className="block mb-2 text-sm font-medium text-gray-700"
             >
-              Email Address
+              Email
             </label>
             <input
               type="email"
@@ -69,16 +63,14 @@ export default function ForgotPasswordPage() {
             {loading ? "Sending..." : "Send Reset Link"}
           </button>
         </form>
-        {message && (
-          <p className="mt-4 text-sm text-center text-green-600">{message}</p>
-        )}
         <p className="mt-4 text-sm text-center text-gray-600">
-          <Link
-            href="/auth/login"
+          Remembered your password?{" "}
+          <a
+            href="/login"
             className="font-medium text-indigo-600 hover:text-indigo-500"
           >
-            Back to Login
-          </Link>
+            Log in
+          </a>
         </p>
       </div>
     </div>

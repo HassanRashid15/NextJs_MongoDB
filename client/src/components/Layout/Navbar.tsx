@@ -106,13 +106,13 @@ const Navbar = () => {
           ) : (
             <div className="space-x-2">
               <Link
-                href="/auth/login"
+                href="/login"
                 className="px-4 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
               >
                 Login
               </Link>
               <Link
-                href="/auth/register"
+                href="/register"
                 className="px-4 py-2 rounded-md text-white bg-gray-600 hover:bg-gray-700"
               >
                 Register

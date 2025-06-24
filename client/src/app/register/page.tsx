@@ -29,7 +29,7 @@ const RegisterPage = () => {
 
       if (res.ok) {
         toast.success(data.message || "Registration successful!");
-        router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
       } else {
         toast.error(data.message);
       }
@@ -122,7 +122,7 @@ const RegisterPage = () => {
         <p className="mt-4 text-sm text-center text-gray-600">
           Already have an account?{" "}
           <Link
-            href="/auth/login"
+            href="/login"
             className="font-medium text-indigo-600 hover:text-indigo-500"
           >
             Log in

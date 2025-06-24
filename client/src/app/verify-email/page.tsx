@@ -15,7 +15,6 @@ export default function VerifyEmailPage() {
   const [timer, setTimer] = useState(60);
 
   useEffect(() => {
-    // Countdown for code expiration
     if (timer > 0) {
       const interval = setInterval(() => {
         setTimer((prevTimer) => prevTimer - 1);
@@ -25,7 +24,6 @@ export default function VerifyEmailPage() {
   }, [timer]);
 
   useEffect(() => {
-    // Cooldown for the resend button
     let cooldownTimer: NodeJS.Timeout;
     if (cooldown > 0) {
       cooldownTimer = setTimeout(() => setCooldown(cooldown - 1), 1000);
@@ -49,8 +47,8 @@ export default function VerifyEmailPage() {
       const data = await res.json();
       if (res.ok) {
         toast.success(data.message);
-        setCooldown(60); // Start 60-second cooldown for the button
-        setTimer(60); // Reset the expiration timer
+        setCooldown(60);
+        setTimer(60);
       } else {
         toast.error(data.message);
       }
@@ -82,7 +80,7 @@ export default function VerifyEmailPage() {
 
       if (res.ok) {
         toast.success(data.message);
-        router.push("/auth/login");
+        router.push("/login");
       } else {
         toast.error(data.message);
       }

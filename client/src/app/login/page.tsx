@@ -41,7 +41,7 @@ const LoginPage = () => {
           toast.error(data.message);
         }
       }
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
@@ -95,7 +95,7 @@ const LoginPage = () => {
         </form>
         <div className="mt-4 text-sm text-center">
           <Link
-            href="/auth/forgot-password"
+            href="/forgot-password"
             className="font-medium text-indigo-600 hover:text-indigo-500"
           >
             Forgot your password?
@@ -104,7 +104,7 @@ const LoginPage = () => {
         <p className="mt-4 text-sm text-center text-gray-600">
           Don't have an account?{" "}
           <Link
-            href="/auth/register"
+            href="/register"
             className="font-medium text-indigo-600 hover:text-indigo-500"
           >
             Sign up

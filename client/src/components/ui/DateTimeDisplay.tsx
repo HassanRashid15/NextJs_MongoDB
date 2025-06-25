@@ -21,7 +21,6 @@ interface DateTimeDisplayProps {
   showIcon?: boolean;
   className?: string;
   live?: boolean; // For live updating time
-  format?: string; // Custom format
 }
 
 const DateTimeDisplay: React.FC<DateTimeDisplayProps> = ({
@@ -30,7 +29,6 @@ const DateTimeDisplay: React.FC<DateTimeDisplayProps> = ({
   showIcon = false,
   className = "",
   live = false,
-  format,
 }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 

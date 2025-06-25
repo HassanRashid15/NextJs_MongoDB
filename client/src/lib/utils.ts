@@ -111,3 +111,17 @@ export const dateFormats = {
     return dateObj.toISOString();
   },
 };
+
+// Image URL utility
+export const getImageUrl = (imagePath: string | undefined | null): string => {
+  if (!imagePath) return "";
+
+  // If it's already a full URL, return as is
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    return imagePath;
+  }
+
+  // If it's a relative path, prepend the backend server URL
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  return `${backendUrl}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
+};

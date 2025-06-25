@@ -5,11 +5,12 @@ import React, {
   useState,
   useContext,
   useEffect,
+  useCallback,
   ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
 
-interface User {
+export interface User {
   _id: string;
   name: string;
   firstName: string;
@@ -25,6 +26,8 @@ interface AuthContextType {
   login: (userData: User, token: string) => void;
   logout: () => void;
   isLoading: boolean;
+  checkAuth: () => Promise<void>;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,47 +40,100 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children, initialUser }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(initialUser || null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(!initialUser); // Don't load if we have initial user
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    // Only check localStorage if we don't have initial user data
-    if (!initialUser) {
-      try {
-        const storedToken = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
-        if (storedToken && storedUser) {
-          let userObj = JSON.parse(storedUser);
-          // Fallback: parse firstName and lastName from name if missing
-          if ((!userObj.firstName || !userObj.lastName) && userObj.name) {
-            const nameParts = userObj.name.split(" ");
-            userObj.firstName = nameParts[0] || "";
-            userObj.lastName =
-              nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
-          }
-          setToken(storedToken);
-          setUser(userObj);
+  // Function to set cookie
+  const setCookie = (name: string, value: string, days: number = 7) => {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+  };
+
+  // Function to get cookie
+  const getCookie = (name: string) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(";").shift();
+    return null;
+  };
+
+  // Function to remove cookie
+  const removeCookie = (name: string) => {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+  };
+
+  // Check authentication status with server
+  const checkAuth = useCallback(async () => {
+    try {
+      const storedToken = localStorage.getItem("token") || getCookie("token");
+
+      if (!storedToken) {
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+        }/api/auth/me`,
+        {
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+          },
         }
-      } catch (error) {
-        console.error("Failed to parse user from localStorage", error);
+      );
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        setToken(storedToken ?? null);
+      } else {
         localStorage.removeItem("user");
         localStorage.removeItem("token");
+        removeCookie("token");
+        setUser(null);
+        setToken(null);
       }
+    } catch {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      removeCookie("token");
+      setUser(null);
+      setToken(null);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
-  }, [initialUser]);
+  }, []);
+
+  useEffect(() => {
+    // If we have initial user from server, use it
+    if (initialUser) {
+      setUser(initialUser);
+      const storedToken = localStorage.getItem("token") || getCookie("token");
+      setToken(storedToken ?? null);
+      setIsLoading(false);
+    } else {
+      // Check authentication status
+      checkAuth();
+    }
+  }, [initialUser, checkAuth]);
 
   const login = (userData: User, userToken: string) => {
-    // Fallback: parse firstName and lastName from name if missing
     let userObj = { ...userData };
     if ((!userObj.firstName || !userObj.lastName) && userObj.name) {
       const nameParts = userObj.name.split(" ");
-      userObj.firstName = nameParts[0] || "";
-      userObj.lastName =
-        nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+      userObj = {
+        ...userObj,
+        firstName: nameParts[0] || "",
+        lastName: nameParts.length > 1 ? nameParts.slice(1).join(" ") : "",
+      };
     }
+
     localStorage.setItem("user", JSON.stringify(userObj));
     localStorage.setItem("token", userToken);
+    setCookie("token", userToken, 7);
+
     setUser(userObj);
     setToken(userToken);
   };
@@ -85,13 +141,16 @@ export const AuthProvider = ({ children, initialUser }: AuthProviderProps) => {
   const logout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    removeCookie("token");
     setUser(null);
     setToken(null);
     router.push("/login");
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ user, token, login, logout, isLoading, checkAuth, setUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

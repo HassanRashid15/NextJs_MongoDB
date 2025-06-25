@@ -1,46 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { useState, useEffect, useRef } from "react";
+import { getImageUrl } from "@/lib/utils";
 
-interface NavbarProps {
-  initialUser?: any;
-}
-
-const Navbar = ({ initialUser }: NavbarProps) => {
+const Navbar = () => {
   const { user, logout, isLoading } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Use initial user data from SSR to avoid hydration mismatch
-  const currentUser = user || initialUser;
-
-  console.log("Navbar render - user:", currentUser, "isLoading:", isLoading);
-
   const getInitials = (name: string | undefined | null) => {
-    console.log("getInitials called with:", name, "type:", typeof name);
-
     if (!name || typeof name !== "string") {
-      console.log("Returning default initial: U");
       return "U"; // Default initial for unknown user
     }
 
     const names = name.trim().split(" ");
-    console.log("Split names:", names);
     const firstName = names[0] || "";
     const lastName = names.length > 1 ? names[names.length - 1] : "";
     const initials = `${firstName.charAt(0)}${lastName.charAt(
       0
     )}`.toUpperCase();
-    console.log(
-      "Generated initials:",
-      initials,
-      "from firstName:",
-      firstName,
-      "lastName:",
-      lastName
-    );
     return initials;
   };
 
@@ -77,29 +58,29 @@ const Navbar = ({ initialUser }: NavbarProps) => {
         <div>
           {isLoading ? (
             <div></div> // Render nothing or a placeholder during auth state loading
-          ) : currentUser ? (
+          ) : user ? (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white focus:outline-none bg-indigo-600 overflow-hidden"
               >
-                {currentUser?.profileImage ? (
-                  <img
-                    src={currentUser.profileImage}
+                {user?.profileImage ? (
+                  <Image
+                    src={getImageUrl(user.profileImage)}
                     alt="Avatar"
+                    width={40}
+                    height={40}
                     className="w-10 h-10 rounded-full object-cover"
                   />
                 ) : (
-                  getInitials(currentUser?.name)
+                  getInitials(user?.name)
                 )}
               </button>
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 text-black z-10">
                   <div className="px-4 py-2 border-b">
-                    <p className="font-bold">{currentUser?.name || "User"}</p>
-                    <p className="text-sm text-gray-500">
-                      {currentUser?.email || ""}
-                    </p>
+                    <p className="font-bold">{user?.name || "User"}</p>
+                    <p className="text-sm text-gray-500">{user?.email || ""}</p>
                   </div>
                   <Link
                     href="/profile"

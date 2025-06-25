@@ -2,7 +2,7 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-interface ApiResponse<T = any> {
+interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -46,8 +46,7 @@ class ApiService {
         data,
         message: data.message,
       };
-    } catch (error) {
-      console.error("API request failed:", error);
+    } catch {
       return {
         success: false,
         error: "Network error. Please check your connection.",

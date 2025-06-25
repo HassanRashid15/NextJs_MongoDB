@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import type { User } from "@/context/AuthContext";
 
 interface HomeClientProps {
-  user: any;
+  user: User | null;
   isAuthenticated: boolean;
   stats: {
     totalUsers: number;
@@ -13,9 +13,11 @@ interface HomeClientProps {
   };
 }
 
-export default function HomeClient({ user, isAuthenticated, stats }: HomeClientProps) {
-  const { login } = useAuth();
-
+export default function HomeClient({
+  user,
+  isAuthenticated,
+  stats,
+}: HomeClientProps) {
   return (
     <div className="flex flex-col items-center justify-center text-center py-20">
       {/* Hero Section */}
@@ -24,25 +26,37 @@ export default function HomeClient({ user, isAuthenticated, stats }: HomeClientP
           Welcome to Our Authentication System
         </h1>
         <p className="text-xl text-gray-600 mb-8 max-w-2xl">
-          A secure, full-stack authentication system built with Next.js, MongoDB, and Express.js. 
-          Featuring email verification, password reset, and protected routes.
+          A secure, full-stack authentication system built with Next.js,
+          MongoDB, and Express.js. Featuring email verification, password reset,
+          and protected routes.
         </p>
-        
+
         {isAuthenticated ? (
-          <div className="space-x-4">
-            <Link
-              href="/dashboard"
-              className="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
-            >
-              Go to Dashboard
-            </Link>
-            <Link
-              href="/profile"
-              className="px-8 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
-            >
-              View Profile
-            </Link>
-          </div>
+          <>
+            <div className="mb-4 text-lg text-green-700 font-semibold">
+              Welcome back
+              {user?.firstName
+                ? `, ${user.firstName}`
+                : user?.name
+                ? `, ${user.name}`
+                : ""}
+              ! You are logged in.
+            </div>
+            <div className="space-x-4">
+              <Link
+                href="/dashboard"
+                className="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+              >
+                Go to Dashboard
+              </Link>
+              <Link
+                href="/profile"
+                className="px-8 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+              >
+                View Profile
+              </Link>
+            </div>
+          </>
         ) : (
           <div className="space-x-4">
             <Link
@@ -121,4 +135,4 @@ export default function HomeClient({ user, isAuthenticated, stats }: HomeClientP
       </div>
     </div>
   );
-} 
+}

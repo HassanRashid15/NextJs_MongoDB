@@ -185,3 +185,32 @@ This project is licensed under the MIT License.
 ## 🆘 Support
 
 If you encounter any issues or have questions, please open an issue on GitHub.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+server
+# MongoDB Connection
+MONGO_URI="mongodb://localhost:27017/your_database_name"
+
+# Server Port
+PORT=5000
+NEXT_PUBLIC_API_URL=http://localhost:5000
+# JSON Web Token Secret
+JWT_SECRET="a_long_random_string_for_your_secret"
+    
+# Email credentials for Nodemailer (using Gmail)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=465
+EMAIL_USERNAME=hassanrashid0018@gmail.com
+EMAIL_PASSWORD=orde wray afjj bysv

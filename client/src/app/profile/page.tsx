@@ -1,40 +1,14 @@
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import ProfileClient from "./ProfileClient";
-import { getUserFromToken } from "@/lib/auth";
+import ProtectedProfileRoute from "@/components/ProtectedProfileRoute";
 
-// Server Component with SSR
-async function getProfileData() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-
-  if (!token) {
-    redirect("/login");
-  }
-
-  try {
-    // Get user data from token
-    const user = await getUserFromToken(token);
-
-    if (!user) {
-      redirect("/login");
-    }
-
-    return { user };
-  } catch (error) {
-    console.error("Profile data fetch error:", error);
-    redirect("/login");
-  }
-}
-
-export default async function ProfilePage() {
-  const { user } = await getProfileData();
-
+export default function ProfilePage() {
   return (
-    <Suspense fallback={<ProfileSkeleton />}>
-      <ProfileClient user={user} />
-    </Suspense>
+    <ProtectedProfileRoute>
+      <Suspense fallback={<ProfileSkeleton />}>
+        <ProfileClient />
+      </Suspense>
+    </ProtectedProfileRoute>
   );
 }
 

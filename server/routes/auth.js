@@ -76,4 +76,33 @@ router.patch("/profile", protect, upload.single("profileImage"), updateProfile);
 // @access  Private
 router.delete("/profile/image", protect, deleteProfileImage);
 
+// @route   POST api/auth/upload-profile-image
+// @desc    Upload user profile image
+// @access  Private
+router.post(
+  "/upload-profile-image",
+  protect,
+  upload.single("profileImage"),
+  async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      const User = require("../models/User");
+      const userDoc = await User.findById(req.user.id);
+      if (!userDoc) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      userDoc.profileImage = `/uploads/${req.file.filename}`;
+      await userDoc.save();
+      res.json({ profileImage: userDoc.profileImage });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
 module.exports = router;

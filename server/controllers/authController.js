@@ -46,6 +46,8 @@ const registerUser = async (req, res) => {
       isEmailVerified: false,
     });
 
+    // Add initial account creation activity
+    await user.addActivity("Account created", "User registered successfully");
     await user.save();
 
     // TODO: Send verification email here if not already handled
@@ -141,6 +143,11 @@ const resendVerificationCode = async (req, res) => {
 
     // Generate and save a new verification code
     const verificationCode = user.generateEmailVerificationCode();
+    // Track verification code resend activity
+    await user.addActivity(
+      "Resent verification code",
+      "New email verification code was generated"
+    );
     await user.save({ validateBeforeSave: false });
 
     // Send verification email
@@ -172,6 +179,11 @@ const forgotPassword = async (req, res) => {
     // Only proceed with sending the email if the user actually exists.
     if (user) {
       const resetToken = user.createPasswordResetToken();
+      // Track password reset request activity
+      await user.addActivity(
+        "Requested password reset",
+        "Password reset email was sent"
+      );
       await user.save({ validateBeforeSave: false });
 
       // The URL must point to the frontend application
@@ -225,6 +237,12 @@ const resetPassword = async (req, res) => {
       user.password = req.body.password;
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
+
+      // Track password reset completion activity
+      await user.addActivity(
+        "Reset password",
+        "Password was reset using email reset link"
+      );
       await user.save();
 
       res.status(200).json({ message: "Password reset successfully." });
@@ -288,22 +306,36 @@ const updateProfile = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    // Track what changed with detailed information
+    let changes = [];
     let emailChanged = false;
-    let nameChanged = false;
-    let imageChanged = false;
 
     // Update name fields if provided
     if (req.body.firstName && req.body.firstName !== user.firstName) {
+      changes.push({
+        field: "First Name",
+        oldValue: user.firstName || "Not set",
+        newValue: req.body.firstName,
+      });
       user.firstName = req.body.firstName;
-      nameChanged = true;
     }
     if (req.body.lastName && req.body.lastName !== user.lastName) {
+      changes.push({
+        field: "Last Name",
+        oldValue: user.lastName || "Not set",
+        newValue: req.body.lastName,
+      });
       user.lastName = req.body.lastName;
-      nameChanged = true;
     }
 
     // Update email if provided and different
     if (req.body.email && req.body.email !== user.email) {
+      changes.push({
+        field: "Email",
+        oldValue: user.email,
+        newValue: req.body.email,
+      });
+      const oldEmail = user.email;
       user.email = req.body.email;
       user.isEmailVerified = false;
       emailChanged = true;
@@ -321,23 +353,17 @@ const updateProfile = async (req, res) => {
     // Update profile image if uploaded
     if (req.file) {
       user.profileImage = `/uploads/${req.file.filename}`;
-      imageChanged = true;
-    }
-
-    // Record activities
-    if (nameChanged) {
-      await user.addActivity("Updated profile", "Changed name information");
-    }
-    if (emailChanged) {
-      await user.addActivity(
-        "Updated email",
-        "Email changed, verification required"
-      );
-    }
-    if (imageChanged) {
       await user.addActivity(
         "Uploaded profile picture",
-        "Profile image updated"
+        `New profile image: ${req.file.filename}`
+      );
+    }
+
+    // Record detailed activities for each change
+    for (const change of changes) {
+      await user.addActivity(
+        `Updated ${change.field}`,
+        `Changed from "${change.oldValue}" to "${change.newValue}"`
       );
     }
 

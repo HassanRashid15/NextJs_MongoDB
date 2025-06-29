@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { getImageUrl } from "@/lib/utils";
 import DateTimeDisplay from "@/components/ui/DateTimeDisplay";
+import ActivityDetailsModal from "@/components/ui/ActivityDetailsModal";
 
 interface DashboardData {
   stats?: {
@@ -57,6 +58,15 @@ const ProfileClient = () => {
   const [isDeletingImage, setIsDeletingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // Modal state for activity details
+  const [selectedActivity, setSelectedActivity] = useState<{
+    id: string;
+    action: string;
+    timestamp: string;
+    details?: string;
+  } | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -209,7 +219,11 @@ const ProfileClient = () => {
           router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
         } else {
           setUser((prev) => (prev ? { ...prev, ...data } : prev));
-          toast.success("Profile updated successfully!");
+          toast.success(
+            "Profile updated successfully! Activity logged in recent activities."
+          );
+          // Refresh dashboard data to show new activities
+          await refreshDashboardData();
         }
       } else {
         const errorData = await response.json();
@@ -268,6 +282,11 @@ const ProfileClient = () => {
         setUser((prev) =>
           prev ? { ...prev, profileImage: data.profileImage } : prev
         );
+        toast.success(
+          "Profile picture uploaded successfully! Activity logged."
+        );
+        // Refresh dashboard data to show new activity
+        await refreshDashboardData();
       } else {
         alert("Failed to upload image");
       }
@@ -296,6 +315,9 @@ const ProfileClient = () => {
         setSelectedImage(null);
         setPreviewUrl(null);
         setUser((prev) => (prev ? { ...prev, profileImage: undefined } : prev));
+        toast.success("Profile picture deleted successfully! Activity logged.");
+        // Refresh dashboard data to show new activity
+        await refreshDashboardData();
       } else {
         alert("Failed to delete image");
       }
@@ -303,6 +325,43 @@ const ProfileClient = () => {
       alert("Error deleting image");
     } finally {
       setIsDeletingImage(false);
+    }
+  };
+
+  const handleActivityClick = (activity: {
+    id: string;
+    action: string;
+    timestamp: string;
+    details?: string;
+  }) => {
+    setSelectedActivity(activity);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedActivity(null);
+  };
+
+  // Helper function to refresh dashboard data
+  const refreshDashboardData = async () => {
+    try {
+      const dashboardResponse = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+        }/api/dashboard`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (dashboardResponse.ok) {
+        const dashboardData = await dashboardResponse.json();
+        setDashboardData(dashboardData);
+      }
+    } catch (error) {
+      console.error("Error refreshing dashboard data:", error);
     }
   };
 
@@ -343,6 +402,16 @@ const ProfileClient = () => {
           {/* Profile Card */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6">
+              {/* Profile Picture Header */}
+              <div className="text-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Profile Picture
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Click to edit your photo
+                </p>
+              </div>
+
               {/* Profile Image */}
               <div className="flex flex-col items-center">
                 <div className="relative" id="profile-image">
@@ -481,6 +550,60 @@ const ProfileClient = () => {
                       Save Profile Picture
                     </button>
                   )}
+                </div>
+
+                {/* Verification Badge */}
+                <div className="mt-4 flex justify-center">
+                  <div
+                    className={`inline-flex items-center px-3 py-2 rounded-full text-sm font-medium ${
+                      user.isEmailVerified
+                        ? "bg-green-100 text-green-800 border border-green-200"
+                        : "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      {user.isEmailVerified ? (
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                      <span>
+                        {user.isEmailVerified
+                          ? "Verified Account"
+                          : "Unverified Account"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* User Name Display */}
+                <div className="mt-3 text-center">
+                  <h4 className="text-lg font-semibold text-gray-900">
+                    {user.firstName && user.lastName
+                      ? `${user.firstName} ${user.lastName}`
+                      : user.name || "User"}
+                  </h4>
+                  <p className="text-sm text-gray-600">{user.email}</p>
                 </div>
               </div>
             </div>
@@ -697,20 +820,21 @@ const ProfileClient = () => {
             {/* Recent Activity Section */}
             {dashboardData.recentActivity &&
               dashboardData.recentActivity.length > 0 && (
-                <div className="mt-8 bg-white rounded-2xl shadow-lg p-6">
+                <div className="mt-8 bg-white rounded-2xl shadow-lg p-6 h-[250px] overflow-y-auto">
                   <h3 className="text-xl font-semibold text-gray-900 mb-6">
                     Recent Activity
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {dashboardData.recentActivity.map((activity) => (
                       <div
                         key={activity.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                        onClick={() => handleActivityClick(activity)}
                       >
                         <div className="flex items-center">
-                          <div className="w-2 h-2 bg-indigo-600 rounded-full mr-3"></div>
+                          <div className="w-2 h-2 bg-indigo-600 rounded-full mr-3 group-hover:bg-indigo-700 transition-colors duration-200"></div>
                           <div>
-                            <p className="text-gray-900 font-medium">
+                            <p className="text-gray-900 font-medium group-hover:text-indigo-900 transition-colors duration-200">
                               {activity.action}
                             </p>
                             {activity.details && (
@@ -941,6 +1065,13 @@ const ProfileClient = () => {
             </div>
           </div>
         </div>
+
+        {/* Activity Details Modal */}
+        <ActivityDetailsModal
+          activity={selectedActivity}
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+        />
       </div>
     </div>
   );

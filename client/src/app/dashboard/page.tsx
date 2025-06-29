@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ActivityDetailsModal from "@/components/ui/ActivityDetailsModal";
 
 interface DashboardStats {
   totalUsers: number;
@@ -22,6 +23,15 @@ export default function DashboardPage() {
     newUsers: 45,
     systemHealth: "Excellent",
   });
+
+  // Modal state for activity details
+  const [selectedActivity, setSelectedActivity] = useState<{
+    id: number;
+    action: string;
+    time: string;
+    type: string;
+  } | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [recentActivity] = useState([
     { id: 1, action: "Profile updated", time: "2 hours ago", type: "profile" },
     { id: 2, action: "Password changed", time: "1 day ago", type: "security" },
@@ -52,13 +62,48 @@ export default function DashboardPage() {
     }
   };
 
+  const handleActivityClick = (activity: {
+    id: number;
+    action: string;
+    time: string;
+    type: string;
+  }) => {
+    setSelectedActivity(activity);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedActivity(null);
+  };
+
+  const convertRelativeTimeToTimestamp = (relativeTime: string): string => {
+    const now = new Date();
+
+    if (relativeTime.includes("hour")) {
+      const hours = parseInt(relativeTime.match(/(\d+)/)?.[1] || "0");
+      now.setHours(now.getHours() - hours);
+    } else if (relativeTime.includes("day")) {
+      const days = parseInt(relativeTime.match(/(\d+)/)?.[1] || "0");
+      now.setDate(now.getDate() - days);
+    } else if (relativeTime.includes("week")) {
+      const weeks = parseInt(relativeTime.match(/(\d+)/)?.[1] || "0");
+      now.setDate(now.getDate() - weeks * 7);
+    } else if (relativeTime.includes("month")) {
+      const months = parseInt(relativeTime.match(/(\d+)/)?.[1] || "0");
+      now.setMonth(now.getMonth() - months);
+    }
+
+    return now.toISOString();
+  };
+
   const getActivityIcon = (type: string) => {
     switch (type) {
       case "profile":
         return (
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors duration-200">
             <svg
-              className="w-4 h-4 text-blue-600"
+              className="w-4 h-4 text-blue-600 group-hover:text-blue-700 transition-colors duration-200"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -74,9 +119,9 @@ export default function DashboardPage() {
         );
       case "security":
         return (
-          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-200 transition-colors duration-200">
             <svg
-              className="w-4 h-4 text-green-600"
+              className="w-4 h-4 text-green-600 group-hover:text-green-700 transition-colors duration-200"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -92,9 +137,9 @@ export default function DashboardPage() {
         );
       case "verification":
         return (
-          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center group-hover:bg-purple-200 transition-colors duration-200">
             <svg
-              className="w-4 h-4 text-purple-600"
+              className="w-4 h-4 text-purple-600 group-hover:text-purple-700 transition-colors duration-200"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -110,9 +155,9 @@ export default function DashboardPage() {
         );
       default:
         return (
-          <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-gray-200 transition-colors duration-200">
             <svg
-              className="w-4 h-4 text-gray-600"
+              className="w-4 h-4 text-gray-600 group-hover:text-gray-700 transition-colors duration-200"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -451,18 +496,21 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div className="p-6">
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {recentActivity.map((activity) => (
                     <div
                       key={activity.id}
-                      className="flex items-start space-x-3"
+                      className="flex items-start space-x-3 p-3 rounded-xl hover:bg-gray-50 hover:shadow-sm transition-all duration-200 cursor-pointer group"
+                      onClick={() => handleActivityClick(activity)}
                     >
                       {getActivityIcon(activity.type)}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 group-hover:text-indigo-900 transition-colors duration-200">
                           {activity.action}
                         </p>
-                        <p className="text-xs text-gray-500">{activity.time}</p>
+                        <p className="text-xs text-gray-500 group-hover:text-gray-600 transition-colors duration-200">
+                          {activity.time}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -556,6 +604,24 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Activity Details Modal */}
+        <ActivityDetailsModal
+          activity={
+            selectedActivity
+              ? {
+                  id: selectedActivity.id.toString(),
+                  action: selectedActivity.action,
+                  timestamp: convertRelativeTimeToTimestamp(
+                    selectedActivity.time
+                  ),
+                  type: selectedActivity.type,
+                }
+              : null
+          }
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+        />
       </div>
     </div>
   );

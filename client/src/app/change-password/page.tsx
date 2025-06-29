@@ -62,7 +62,9 @@ const ChangePasswordPage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage("Password updated successfully!");
+        setMessage(
+          "Password updated successfully! This activity has been logged in your profile."
+        );
         setFormData({
           currentPassword: "",
           newPassword: "",

@@ -12,7 +12,6 @@ const {
   deleteProfileImage,
   changePassword,
   getCurrentUser,
-  getDashboardData,
 } = require("../controllers/authController");
 const protect = require("../utils/authMiddleware");
 
@@ -50,11 +49,6 @@ router.post("/login", loginUser);
 // @desc    Get current user
 // @access  Private
 router.get("/me", protect, getCurrentUser);
-
-// @route   GET api/dashboard
-// @desc    Get dashboard data
-// @access  Private
-router.get("/dashboard", protect, getDashboardData);
 
 // @route   PUT api/auth/change-password
 // @desc    Change user password

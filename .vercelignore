@@ -1,0 +1,19 @@
+# Backend files (will be deployed separately)
+index.js
+controllers/
+routes/
+models/
+db/
+utils/
+uploads/
+node_modules/
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Development files
+*.log
+.DS_Store
+.vscode/
+.idea/

@@ -17,7 +17,10 @@ app.use(cors({
     'http://127.0.0.1:3000',
     'https://authintegration-6m0cb28l6-hassanrashid15s-projects.vercel.app',
     'https://auth-integration.vercel.app',
-    'https://*.vercel.app'
+    'https://authintegration-nojo0ui6n-hassanrashid15s-projects.vercel.app',
+    'https://authintegration.vercel.app',
+    'https://*.vercel.app',
+    'https://*.railway.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

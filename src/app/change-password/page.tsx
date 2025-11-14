@@ -44,7 +44,7 @@ const ChangePasswordPage = () => {
     try {
       const response = await fetch(
         `${
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+          process.env.NEXT_PUBLIC_API_URL || "https://authintegration-production-c198.up.railway.app"
         }/api/auth/change-password`,
         {
           method: "PUT",

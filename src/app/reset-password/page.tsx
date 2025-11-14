@@ -14,7 +14,7 @@ const ResetPasswordPage = () => {
 
     try {
       const res = await fetch(
-        "http://localhost:5000/api/auth/forgot-password",
+        `${process.env.NEXT_PUBLIC_API_URL || "https://authintegration-production-c198.up.railway.app"}/api/auth/forgot-password`,
         {
           method: "POST",
           headers: {

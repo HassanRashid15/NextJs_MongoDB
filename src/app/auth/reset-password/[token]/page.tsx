@@ -25,7 +25,7 @@ export default function ResetPasswordPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/auth/reset-password/${token}`,
+        `${process.env.NEXT_PUBLIC_API_URL || "https://authintegration-production-c198.up.railway.app"}/api/auth/reset-password/${token}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

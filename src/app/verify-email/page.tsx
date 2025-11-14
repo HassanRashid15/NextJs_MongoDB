@@ -48,7 +48,7 @@ function VerifyEmailContent() {
     setResending(true);
     try {
       const res = await fetch(
-        "http://localhost:5000/api/auth/resend-verification-code",
+        `${process.env.NEXT_PUBLIC_API_URL || "https://authintegration-production-c198.up.railway.app"}/api/auth/resend-verification-code`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -79,7 +79,7 @@ function VerifyEmailContent() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/verify-email", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://authintegration-production-c198.up.railway.app"}/api/auth/verify-email`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

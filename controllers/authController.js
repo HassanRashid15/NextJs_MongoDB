@@ -63,8 +63,11 @@ const registerUser = async (req, res) => {
         text: `Your verification code is: ${verificationCode}\n\nThis code will expire in 1 minute.`,
         html: `<p>Your verification code is: <b>${verificationCode}</b></p><p>This code will expire in 1 minute.</p>`,
       });
+      
+      console.log(`Verification email sent successfully to ${user.email}`);
     } catch (emailError) {
-      // Don't fail registration if email fails
+      console.error("Email sending failed:", emailError);
+      // Don't fail registration if email fails, but log the error
     }
 
     res.status(201).json({

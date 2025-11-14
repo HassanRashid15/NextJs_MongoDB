@@ -122,6 +122,6 @@ export const getImageUrl = (imagePath: string | undefined | null): string => {
   }
 
   // If it's a relative path, prepend the backend server URL
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://authintegration-production-c198.up.railway.app";
   return `${backendUrl}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
 };

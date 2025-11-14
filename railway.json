@@ -5,7 +5,7 @@
     "buildCommand": "npm install"
   },
   "deploy": {
-    "startCommand": "node index.js",
+    "startCommand": "npm run server:prod",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }

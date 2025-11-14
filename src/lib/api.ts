@@ -1,6 +1,6 @@
 // API service layer for centralized API calls
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://authintegration-production.up.railway.app";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://authintegration-production-c198.up.railway.app";
 
 interface ApiResponse<T = unknown> {
   success: boolean;
